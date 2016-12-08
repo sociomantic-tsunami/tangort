@@ -1,0 +1,25 @@
+OPTS = dict(
+    name = VAR.name,
+    description = "Tango runtime for DMD1 development files",
+    category = 'libdevel',
+    url = 'https://github.com/sociomantic-tsunami/tangort',
+    maintainer = 'Leandro Lucarella <leandro.lucarella@sociomantic.com>',
+    vendor = 'Sociomantic Labs GmbH',
+    license = 'BSD-2-clause',
+    depends = 'dmd1', # TODO: get dmd1 dependency from metadata file
+    deb_recommends = 'dmd1-rt',
+    provides = ['dmd1-rt', 'libtango1-dev', 'libtango1-dmd-dev'],
+    replaces = 'libtango1-dmd-dev',
+    conflicts = 'libtango1-dmd-dev',
+)
+
+ARGS = [
+    "pkg/dmd1.conf=/etc/dmd1.conf",
+    "src/rt/include/object.di=/usr/include/d1/object.di",
+    "src/rt/include/std/intrinsic.d=/usr/include/d1/std/intrinsic.d",
+    "src/core=/usr/include/d1/",
+    "build/cdgc.release/lib/libtangort-dmd-cdgc.a=/usr/lib/d1/libtangort-dmd-cdgc.a",
+    "build/cdgc.debug/lib/libtangort-dmd-cdgc-dbg.a=/usr/lib/d1/libtangort-dmd-cdgc-dbg.a",
+]
+
+# vim: set ft=python :

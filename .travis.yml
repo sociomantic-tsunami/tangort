@@ -1,0 +1,10 @@
+sudo: required
+
+services:
+    - docker
+
+before_install:
+    - docker build -t sociomantic-tsunami/tangort docker
+
+script:
+    - docker run -ti --rm -v $PWD:$PWD -w $PWD -u $(id -u) sociomantic-tsunami/tangort docker/travis.sh

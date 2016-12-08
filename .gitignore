@@ -1,0 +1,4 @@
+build/
+# This should be killed soon
+trace.def
+trace.log
