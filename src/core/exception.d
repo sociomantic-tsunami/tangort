@@ -78,6 +78,8 @@ class RangeError : Error
  */
 class FinalizeError : Error
 {
+    import core.stdc.stdio;
+
     ClassInfo   info;
 
     this( ClassInfo c, Exception e )
@@ -88,8 +90,24 @@ class FinalizeError : Error
 
     override char[] toString()
     {
-        auto other = super.next ? super.next.toString : "unknown";
-        return "An exception was thrown while finalizing an instance of class " ~ info.name ~ " :: "~other;
+        char[] chained_exception;
+
+        if (super.next)
+        {
+            char[16] line_buf;
+            cast(void)snprintf(line_buf.ptr, line_buf.length,
+                    "%ld", super.next.line);
+
+            chained_exception =
+                super.next.toString ~ "@" ~ super.next.file ~ ":" ~ line_buf;
+        }
+        else
+        {
+            chained_exception = "unknown";
+        }
+
+        return "An exception was thrown while finalizing an instance of class " ~
+            info.name ~ " :: " ~ chained_exception;
     }
 }
 
