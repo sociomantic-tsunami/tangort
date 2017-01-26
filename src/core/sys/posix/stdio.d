@@ -252,3 +252,9 @@ else version( solaris )
 
     char*  tempnam(in char*, in char*);
 }
+
+version (Posix)
+{
+    ssize_t getdelim (char** lineptr, size_t* n, int delimiter, FILE* stream);
+    ssize_t getline (char** lineptr, size_t* n, FILE* stream);
+}
