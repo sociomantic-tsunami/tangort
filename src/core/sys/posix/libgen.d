@@ -12,7 +12,7 @@
  *    (See accompanying file LICENSE or copy at
  *          http://www.boost.org/LICENSE_1_0.txt)
  */
-module ocean.stdc.posix.libgen;
+module core.stdc.posix.libgen;
 
 extern (C):
 
