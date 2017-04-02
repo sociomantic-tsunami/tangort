@@ -382,6 +382,66 @@ extern(C) array_t _d_newarraymT(TypeInfo ti, int ndims, ...)
     return result;
 }
 
+void[] _d_newarrayOpT(alias op)(in TypeInfo ti, size_t[] dims)
+{
+    debug(PRINTF) printf("_d_newarrayOpT(ndims = %d)\n", dims.length);
+    if (dims.length == 0)
+        return null;
+
+    void[] foo(in TypeInfo ti, size_t[] dims)
+    {
+        auto dim = dims[0];
+        void[] p;
+
+
+        debug(PRINTF) printf("foo(ti = %p, ti.next = %p, dim = %d, ndims = %d\n", ti, ti.next, dim, dims.length);
+        if (dims.length == 1)
+        {
+            auto r = op(ti, dim);
+            p = *cast(void[]*)(&r);
+        }
+        else
+        {
+            p = gc_malloc(dim * (void[]).sizeof + 1)[0 .. dim];
+
+            for (size_t i = 0; i < dim; i++)
+            {
+                (cast(void[]*)p.ptr)[i] = foo(ti.next, dims[1..$]);
+            }
+        }
+        return p;
+    }
+
+    auto result = foo(ti, dims);
+    debug(PRINTF) printf("result = %llx\n", result.ptr);
+
+    return result;
+}
+
+extern (C) void[] _d_newarraymTX(in TypeInfo ti, size_t[] dims)
+{
+    debug(PRINTF) printf("_d_newarraymT(dims.length = %d)\n", dims.length);
+
+    if (dims.length == 0)
+        return null;
+    else
+    {
+        return _d_newarrayOpT!(_d_newarrayT)(ti, dims);
+    }
+}
+
+extern (C) void[] _d_newarraymiTX(in TypeInfo ti, size_t[] dims)
+{
+    debug(PRINTF) printf("_d_newarraymiT(dims.length = %d)\n", dims.length);
+
+    if (dims.length == 0)
+        return null;
+    else
+    {
+        return _d_newarrayOpT!(_d_newarrayiT)(ti, dims);
+    }
+}
+
 
 /**
  *
@@ -1317,6 +1377,46 @@ extern (C) byte[] _d_arraycatnT(TypeInfo ti, uint n, ...)
             }
         }
         va_end(ap2);
+    }
+
+    byte[] result;
+    *cast(size_t *)&result = length;       // jam length
+    (cast(void **)&result)[1] = a;      // jam ptr
+    return result;
+}
+
+/**
+ *
+ */
+extern (C) void[] _d_arraycatnTX(in TypeInfo ti, byte[][] arrs)
+{
+    void* a;
+    size_t length;
+    byte[]* p;
+    uint i;
+    byte[] b;
+    auto size = ti.next.tsize(); // array element size
+
+    foreach (arr; arrs)
+        length += arr.length;
+
+    if (!length)
+        return null;
+
+    PointerMap pm;
+    version (D_HavePointerMap) {
+        pm = ti.next.pointermap();
+    }
+    a = gc_malloc(length * size, !(ti.next.flags() & 1) ? BlkAttr.NO_SCAN : 0, pm);
+
+    size_t j;
+    foreach (arr; arrs)
+    {
+        if (arr.length)
+        {
+            memcpy(a + j, arr.ptr, arr.length * size);
+            j += arr.length * size;
+        }
     }
 
     byte[] result;
