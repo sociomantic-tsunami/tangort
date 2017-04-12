@@ -36,23 +36,32 @@ struct iovec
     size_t iov_len;
 }
 
+version (D_Version2)
+    struct iovec_const
+    {
+        mixin("const(void)* iov_base;");
+        size_t iov_len;
+    }
+else
+    alias iovec iovec_const;
+
 version( linux )
 {
     ssize_t readv(int, in iovec*, int);
-    ssize_t writev(int, in iovec*, int);
+    ssize_t writev(int, in iovec_const*, int);
 }
 else version( darwin )
 {
     ssize_t readv(int, in iovec*, int);
-    ssize_t writev(int, in iovec*, int);
+    ssize_t writev(int, in iovec_const*, int);
 }
 else version( freebsd )
 {
     ssize_t readv(int, in iovec*, int);
-    ssize_t writev(int, in iovec*, int);
+    ssize_t writev(int, in iovec_const*, int);
 }
 else version( solaris )
 {
     ssize_t readv(int, in iovec*, int);
-    ssize_t writev(int, in iovec*, int);
+    ssize_t writev(int, in iovec_const*, int);
 }
