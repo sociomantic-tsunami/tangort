@@ -30,47 +30,38 @@ ssize_t readv(int, in iovec*, int);
 ssize_t writev(int, in iovec*, int);
 */
 
-version( linux )
+struct iovec
 {
-    struct iovec
+    void* iov_base;
+    size_t iov_len;
+}
+
+version (D_Version2)
+    struct iovec_const
     {
-        void*  iov_base;
+        mixin("const(void)* iov_base;");
         size_t iov_len;
     }
+else
+    alias iovec iovec_const;
 
+version( linux )
+{
     ssize_t readv(int, in iovec*, int);
-    ssize_t writev(int, in iovec*, int);
+    ssize_t writev(int, in iovec_const*, int);
 }
 else version( darwin )
 {
-    struct iovec
-    {
-        void*  iov_base;
-        size_t iov_len;
-    }
-
     ssize_t readv(int, in iovec*, int);
-    ssize_t writev(int, in iovec*, int);
+    ssize_t writev(int, in iovec_const*, int);
 }
 else version( freebsd )
 {
-    struct iovec
-    {
-        void*  iov_base;
-        size_t iov_len;
-    }
-
     ssize_t readv(int, in iovec*, int);
-    ssize_t writev(int, in iovec*, int);
+    ssize_t writev(int, in iovec_const*, int);
 }
 else version( solaris )
 {
-    struct iovec
-    {
-        void*  iov_base;
-        size_t iov_len;
-    }
-
     ssize_t readv(int, in iovec*, int);
-    ssize_t writev(int, in iovec*, int);
+    ssize_t writev(int, in iovec_const*, int);
 }
