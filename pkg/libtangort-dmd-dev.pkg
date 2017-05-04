@@ -6,7 +6,7 @@ OPTS = dict(
     maintainer = 'Leandro Lucarella <leandro.lucarella@sociomantic.com>',
     vendor = 'Sociomantic Labs GmbH',
     license = 'BSD-2-clause',
-    depends = 'dmd1', # TODO: get dmd1 dependency from metadata file
+    depends = 'dmd1 >= 1.080.0', # TODO: get dmd1 dependency from metadata file
     deb_recommends = 'dmd1-rt',
     provides = ['dmd1-rt', 'libtango1-dev', 'libtango1-dmd-dev'],
     replaces = 'libtango1-dmd-dev',
