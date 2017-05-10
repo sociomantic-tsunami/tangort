@@ -55,7 +55,7 @@ private
     alias extern(D) void delegate(int, int) dint;
 
     extern (C) void gc_monitor(ddel begin, dint end );
-    extern (C) void gc_usage(size_t* used, size_t* free);
+    extern (C) void gc_usage(size_t* used, size_t* free, size_t* last);
 }
 
 
@@ -570,6 +570,7 @@ struct GC
      */
     static void usage ( out size_t used, out size_t free )
     {
-        return gc_usage(&used, &free);
+        size_t unused;
+        return gc_usage(&used, &free, &unused);
     }
 }
