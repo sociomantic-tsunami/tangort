@@ -14,6 +14,10 @@
 module rt.tracegc;
 
 import rt.profilegc;
+import core.memory;
+
+extern(C) void gc_resetLastAllocation();
+extern(C) void gc_usage(size_t*,size_t*, size_t*);
 
 extern (C) Object _d_newclass(in ClassInfo ci);
 extern (C) void[] _d_newarrayT(in TypeInfo ti, size_t length);
@@ -37,41 +41,41 @@ extern (C) void[] _d_arrayappendwd(ref byte[] x, dchar c);
 extern (C) void[] _d_arraysetlengthT(in TypeInfo ti, size_t newlength, void[]* p);
 extern (C) void[] _d_arraysetlengthiT(in TypeInfo ti, size_t newlength, void[]* p);
 
+T count (T) (lazy T wrapped, char[] file, int line, char[] funcname, char[] name)
+{
+    gc_resetLastAllocation();
+    T result = wrapped;
+    size_t used, free, last;
+    gc_usage(&used, &free, &last);
+    if (last > 0)
+        accumulate(file, line, funcname, name, last);
+    return result;
+}
+
 extern (C) Object _d_newclassTrace(char[] file, int line, char[] funcname, in ClassInfo ci)
 {
-    accumulate(file, line, funcname, ci.name, ci.init.length);
-    return _d_newclass(ci);
+    return count(_d_newclass(ci), file, line, funcname, ci.name);
 }
 
 extern (C) void[] _d_newarrayTTrace(char[] file, int line, char[] funcname, in TypeInfo ti, size_t length)
 {
-    accumulate(file, line, funcname, ti.toString(), ti.tsize * length);
-    return _d_newarrayT(ti, length);
+    return count(_d_newarrayT(ti, length), file, line, funcname, ti.toString());
 }
 
 extern (C) void[] _d_newarrayiTTrace(char[] file, int line, char[] funcname, in TypeInfo ti, size_t length)
 {
-    accumulate(file, line, funcname, ti.toString(), ti.tsize * length);
-    return _d_newarrayiT(ti, length);
+    return count(_d_newarrayiT(ti, length), file, line, funcname, ti.toString());
 }
 
 extern (C) void[] _d_newarraymTXTrace(char[] file, int line, char[] funcname, in TypeInfo ti, size_t[] dims)
 {
-    size_t n = 1;
-    foreach (dim; dims)
-        n *= dim;
-    accumulate(file, line, funcname, ti.toString(), ti.tsize * n);
-    return _d_newarraymTX(ti, dims);
+    return count(_d_newarraymTX(ti, dims), file, line, funcname, ti.toString());
 }
 
 extern (C) void[] _d_newarraymiTXTrace(char[] file, int line, char[] funcname,
     in TypeInfo ti, size_t[] dims)
 {
-    size_t n = 1;
-    foreach (dim; dims)
-        n *= dim;
-    accumulate(file, line, funcname, ti.toString(), ti.tsize * n);
-    return _d_newarraymiTX(ti, dims);
+    return count(_d_newarraymiTX(ti, dims), file, line, funcname, ti.toString());
 }
 
 extern (C) void _d_callfinalizerTrace(char[] file, int line, char[] funcname, void* p)
@@ -102,82 +106,57 @@ extern (C) void _d_delmemoryTrace(char[] file, int line, char[] funcname, void* 
 extern (C) void* _d_arrayliteralTXTrace(char[] file, int line, char[] funcname,
     in TypeInfo ti, size_t length)
 {
-    accumulate(file, line, funcname, ti.toString(), ti.next.tsize * length);
-    return _d_arrayliteralTX(ti, length);
+    return count(_d_arrayliteralTX(ti, length), file, line, funcname, ti.toString());
 }
 
 extern (C) void* _d_assocarrayliteralTXTrace(char[] file, int line, char[] funcname,
         in TypeInfo_AssociativeArray ti, void[] keys, void[] vals)
 {
-    accumulate(file, line, funcname, ti.toString(), (ti.key.tsize + ti.value.tsize) * keys.length);
-    return _d_assocarrayliteralTX(ti, keys, vals);
+    return count(_d_assocarrayliteralTX(ti, keys, vals), file, line, funcname, ti.toString());
 }
 
 extern (C) byte[] _d_arraycatTTrace(char[] file, int line, char[] funcname,
     in TypeInfo ti, byte[] x, byte[] y)
 {
-    accumulate(file, line, funcname, ti.toString(), (x.length + y.length) * ti.next.tsize);
-    return _d_arraycatT(ti, x, y);
+    return count(_d_arraycatT(ti, x, y), file, line, funcname, ti.toString());
 }
 
 extern (C) void[] _d_arraycatnTXTrace(char[] file, int line, char[] funcname,
     in TypeInfo ti, byte[][] arrs)
 {
-    size_t length;
-    foreach (b; arrs)
-        length += b.length;
-    accumulate(file, line, funcname, ti.toString(), length * ti.next.tsize);
-    return _d_arraycatnTX(ti, arrs);
+    return count(_d_arraycatnTX(ti, arrs), file, line, funcname, ti.toString());
 }
 
 extern (C) void[] _d_arrayappendTTrace(char[] file, int line, char[] funcname,
     in TypeInfo ti, ref byte[] x, byte[] y)
 {
-    accumulate(file, line, funcname, ti.toString(), ti.next.tsize * y.length);
-    return _d_arrayappendT(ti, x, y);
+    return count(_d_arrayappendT(ti, x, y), file, line, funcname, ti.toString());
 }
 
 extern (C) byte[] _d_arrayappendcTXTrace(char[] file, int line, char[] funcname,
     in TypeInfo ti, ref byte[] px, size_t n)
 {
-    accumulate(file, line, funcname, ti.toString(), ti.next.tsize * n);
-    return _d_arrayappendcTX(ti, px, n);
+    return count(_d_arrayappendcTX(ti, px, n), file, line, funcname, ti.toString());
 }
 
 extern (C) void[] _d_arrayappendcdTrace(char[] file, int line, char[] funcname, ref byte[] x, dchar c)
 {
-    size_t n;
-    if (c <= 0x7F)
-        n = 1;
-    else if (c <= 0x7FF)
-        n = 2;
-    else if (c <= 0xFFFF)
-        n = 3;
-    else if (c <= 0x10FFFF)
-        n = 4;
-    else
-        assert(0);
-    accumulate(file, line, funcname, "char[]", n * char.sizeof);
-    return _d_arrayappendcd(x, c);
+    return count(_d_arrayappendcd(x, c), file, line, funcname, "char[]");
 }
 
 extern (C) void[] _d_arrayappendwdTrace(char[] file, int line, char[] funcname, ref byte[] x, dchar c)
 {
-    size_t n = 1 + (c > 0xFFFF);
-    accumulate(file, line, funcname, "wchar[]", n * wchar.sizeof);
-    return _d_arrayappendwd(x, c);
+    return count(_d_arrayappendwd(x, c), file, line, funcname, "wchar[]");
 }
 
 extern (C) void[] _d_arraysetlengthTTrace(char[] file, int line,
     char[] funcname, in TypeInfo ti, size_t newlength, void[]* p)
 {
-    accumulate(file, line, funcname, ti.toString(), ti.next.tsize * newlength);
-    return _d_arraysetlengthT(ti, newlength, p);
+    return count(_d_arraysetlengthT(ti, newlength, p), file, line, funcname, ti.toString());
 }
 
 extern (C) void[] _d_arraysetlengthiTTrace(char[] file, int line,
     char[] funcname, in TypeInfo ti, size_t newlength, void[]* p)
 {
-    accumulate(file, line, funcname, ti.toString(), ti.next.tsize * newlength);
-    return _d_arraysetlengthiT(ti, newlength, p);
+    return count(_d_arraysetlengthiT(ti, newlength, p), file, line, funcname, ti.toString());
 }
