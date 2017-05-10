@@ -244,6 +244,8 @@ struct GC
     size_t total_mem;
     /// Free heap memory
     size_t free_mem;
+    /// Tracking of last allocations
+    size_t last_alloc;
 
     /// Free list for each size
     List*[B_MAX] free_list;
@@ -1568,6 +1570,8 @@ private void *malloc(size_t size, uint attrs, size_t* pm_bitmask)
     }
 
     gc.free_mem -= capacity;
+    gc.last_alloc += capacity;
+
     if (collected) {
         // If there is not enough free memory (after a collection), allocate
         // a new pool big enough to have at least the min_free% of the total
@@ -1696,6 +1700,7 @@ private void *realloc(void *p, size_t size, uint attrs,
                             newsz - psz);
                     auto new_blk_size = (PAGESIZE * newsz);
                     gc.free_mem -= new_blk_size - blk_size;
+                    gc.last_alloc += new_blk_size - blk_size;
                     // update the size cache, assuming that is very
                     // likely the size of this block will be queried in
                     // the near future
@@ -1809,6 +1814,7 @@ body
     gc.p_cache = null;
     gc.size_cache = 0;
     gc.free_mem -= new_size - blk_size;
+    gc.last_alloc += new_size - blk_size;
     // update the size cache, assuming that is very likely the size of this
     // block will be queried in the near future
     pool.update_cache(p, new_size);
@@ -2778,10 +2784,22 @@ void gc_monitor(begin_del begin, end_del end)
     })();
 }
 
-void gc_usage(size_t* used, size_t* free)
+// This should be locked! Unless you are counting on ints to be atomic.
+void gc_usage(size_t* used, size_t* free, size_t* last)
 {
-    *free = gc.free_mem;
-    *used = gc.total_mem - gc.free_mem;
+    locked!(void, () {
+        *free = gc.free_mem;
+        *used = gc.total_mem - gc.free_mem;
+        *last = gc.last_alloc;
+    });
+}
+
+// This should be locked! Unless you are counting on ints to be atomic.
+void gc_resetLastAllocation()
+{
+    locked!(void, () {
+        gc.last_alloc = 0;
+    });
 }
 
 // vim: set et sw=4 sts=4 :
