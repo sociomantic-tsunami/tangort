@@ -20,6 +20,7 @@ ARGS = [
     "src/core=/usr/include/d1/",
     "build/cdgc.release/lib/libtangort-dmd-cdgc.a=/usr/lib/d1/libtangort-dmd-cdgc.a",
     "build/cdgc.debug/lib/libtangort-dmd-cdgc-dbg.a=/usr/lib/d1/libtangort-dmd-cdgc-dbg.a",
+    "LICENSE.txt=/usr/share/doc/" + VAR.name + "/copyright",
 ]
 
 # vim: set ft=python :
