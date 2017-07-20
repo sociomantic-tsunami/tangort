@@ -46,6 +46,8 @@ char*  l64a(c_long);
 void   lcong48(ref ushort[7]);
 c_long lrand48();
 char*  mktemp(char*); // LEGACY
+char*  mkdtemp(char*);
+
 //int    mkstemp(char*);
 c_long mrand48();
 c_long nrand48(ref ushort[3]);
