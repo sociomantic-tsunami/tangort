@@ -21,8 +21,10 @@ private
         import core.sys.posix.unistd : close, read;
     }
     import core.bitop;
-    import core.stdc.stdio : fopen,fclose,fprintf,FILE;
+    import core.stdc.stdio : fopen,fclose,fprintf,FILE,stderr;
     import rt.util.utf;
+    import cstdlib = core.stdc.stdlib;
+    import cstring = core.stdc.string;
 
     struct BitArray
     {
@@ -112,8 +114,37 @@ extern (C) void _d_cover_register( char[] filename, BitArray valid, uint[] data 
 
 static ~this()
 {
+    if (!gdata)
+        return;
+
     const NUMLINES = 16384 - 1;
     const NUMCHARS = 16384 * 16 - 1;
+
+    // Only use with string literals or make sure name ends with \0
+    static char[] getenv(char[] name, char[] default_ = null)
+    {
+        auto c_val = cstdlib.getenv(name.ptr);
+        if (c_val is null)
+            return null;
+        auto val = c_val[0..cstring.strlen(c_val)];
+        if (val is null)
+            val = default_;
+        return val;
+    }
+
+    // Get runtime options from environment variables
+    auto merge_str = getenv("DRT_COVMERGE");
+    if (merge_str !is null) switch (merge_str)
+    {
+        case "0": merge = false; break;
+        case "1": merge = true;  break;
+        default:
+            fprintf(stderr, "RT Error: Runtime option " ~
+                    "'DRT_COVMERGE' should be 1 or 0, got '%.*s'.\n".ptr,
+                    cast(int)merge_str.length, merge_str.ptr);
+    }
+    srcpath = getenv("DRT_COVSRCPATH", srcpath);
+    dstpath = getenv("DRT_COVDSTPATH", dstpath);
 
     char[]      srcbuf      = new char[NUMCHARS];
     char[][]    srclines    = new char[][NUMLINES];
