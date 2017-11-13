@@ -16,10 +16,9 @@ before_install: git submodule update --init
 
 env:
     global:
+        - DIST=xenial
         # Make sure beaver is in the PATH
         - PATH="$(git config -f .gitmodules submodule.beaver.path)/bin:$PATH"
-    matrix:
-        - DIST=xenial
 
 install: beaver install
 
