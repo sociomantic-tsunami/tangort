@@ -1,5 +1,5 @@
-OPTS = dict(
-    name = VAR.name,
+OPTS.update(
+    name = VAR.shortname,
     description = "Tango runtime for DMD1 development files",
     category = 'libdevel',
     url = 'https://github.com/sociomantic-tsunami/tangort',
@@ -13,14 +13,14 @@ OPTS = dict(
     conflicts = 'libtango1-dmd-dev',
 )
 
-ARGS = [
+ARGS.extend([
     "pkg/dmd1.conf=/etc/dmd1.conf",
     "src/rt/include/object.di=/usr/include/d1/object.di",
     "src/rt/include/std/intrinsic.d=/usr/include/d1/std/intrinsic.d",
     "src/core=/usr/include/d1/",
     "build/cdgc.release/lib/libtangort-dmd-cdgc.a=/usr/lib/d1/libtangort-dmd-cdgc.a",
     "build/cdgc.debug/lib/libtangort-dmd-cdgc-dbg.a=/usr/lib/d1/libtangort-dmd-cdgc-dbg.a",
-    "LICENSE.txt=/usr/share/doc/" + VAR.name + "/copyright",
-]
+    "LICENSE.txt=/usr/share/doc/" + VAR.fullname + "/copyright",
+])
 
 # vim: set ft=python :
