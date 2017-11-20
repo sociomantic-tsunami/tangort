@@ -25,20 +25,6 @@ struct Entry { size_t count, size; }
 
 char[] buffer;
 Entry[char[]] newCounts;
-char[] logfilename = "profilegc.log";
-
-/****
- * Set file name for output.
- * A file name of "" means write results to stdout.
- * Params:
- *      name = file name
- */
-
-extern (C) void profilegc_setlogfilename(char[] name)
-{
-    logfilename = name;
-}
-
 
 
 public void accumulate(char[] file, uint line, char[] funcname, char[] type, size_t sz)
@@ -78,7 +64,7 @@ public void accumulate(char[] file, uint line, char[] funcname, char[] type, siz
 }
 
 // Write report to stderr
-static ~this()
+extern(C) void write_profilegc_report ( char[] logfilename )
 {
     static struct Result
     {
