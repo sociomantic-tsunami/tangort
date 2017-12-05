@@ -216,6 +216,13 @@ extern (C) void onArrayBoundsError( char[] file, size_t line )
     throw new RangeError( file, cast(long)line );
 }
 
+/**
+ * Compatibility with D2 runtime
+ */
+extern (C) void onRangeError( char[] file, size_t line )
+{
+    onArrayBoundsError(file, line);
+}
 
 /**
  * A callback for finalize errors in D.  A FinalizeError will be thrown.
