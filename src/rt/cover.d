@@ -157,10 +157,9 @@ static ~this()
             continue;
         splitLines( srcbuf, srclines );
 
-        if( merge )
+        if( merge &&
+                readFile( addExt( baseName( c.filename ), "lst" ), lstbuf ) )
         {
-            if( !readFile( addExt( baseName( c.filename ), "lst" ), lstbuf ) )
-                break;
             splitLines( lstbuf, lstlines );
 
             for( size_t i = 0; i < lstlines.length; ++i )
