@@ -33,6 +33,6 @@ jobs:
           # env: before_install: and install: are inherited and we don't need
           # to override them.
           script:
-              - beaver dlang make pkg
+              - beaver make F=cdgc.release pkg
               - beaver bintray upload -d sociomantic-tsunami/dlang/tangort
                 build/last/pkg/*.deb
