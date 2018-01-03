@@ -22,16 +22,16 @@ env:
 
 install: beaver install
 
-script: beaver make F=cdgc.release all test pkg
-
 jobs:
     include:
+        # env: before_install: and install: are inherited and we don't need
+        # to override them.
+        - stage: Test
+          script: beaver make F=cdgc.release all test pkg
         - stage: Upload Package
           # We need to include the exclusion of D2 tags because this "if"
           # replaces the global one
           if: tag IS present
-          # env: before_install: and install: are inherited and we don't need
-          # to override them.
           script:
               - beaver make F=cdgc.release pkg
               - beaver bintray upload -d sociomantic-tsunami/dlang/tangort
