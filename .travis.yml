@@ -11,21 +11,22 @@ services:
 git:
     submodules: false
 
-# Do a shallow submodule fetch
-before_install: git submodule update --init
-
+# Global environment variables
 env:
     global:
         - DIST=xenial
         # Make sure beaver is in the PATH
         - PATH="$(git config -f .gitmodules submodule.beaver.path)/bin:$PATH"
 
+# Do a shallow submodule fetch
+before_install: git submodule update --init
+
+# Create docker images and setup environment to build
 install: beaver install
 
+# Basic config is inherited from the global scope
 jobs:
     include:
-        # env: before_install: and install: are inherited and we don't need
-        # to override them.
         - stage: Test
           script: beaver make F=cdgc.release all test pkg
         - stage: Upload Package
