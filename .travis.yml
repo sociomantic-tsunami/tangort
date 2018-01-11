@@ -16,23 +16,37 @@ before_install: git submodule update --init
 
 env:
     global:
+        - ARTIFACTS_DIR=build/travis-artifacts
         - DIST=xenial
         # Make sure beaver is in the PATH
         - PATH="$(git config -f .gitmodules submodule.beaver.path)/bin:$PATH"
 
 install: beaver install
 
+# (Ab)use Travis cache to pass artifacts between stages.
+# As long as the environment variables of different stages match, travis will
+# pull the same "cache", so we can use this to actually pass artifacts between
+# stages.
+cache:
+    directories:
+        - $ARTIFACTS_DIR
+
 jobs:
     include:
         # env: before_install: and install: are inherited and we don't need
         # to override them.
         - stage: Test
-          script: beaver make F=cdgc.release all test pkg
+          script:
+              - beaver make F=cdgc.release all test pkg
+              # If this is a tag, save the packages in the cache directory so
+              # it's accessible in the Upload Package stage
+              - if test -n "$TRAVIS_TAG"; then
+                    cp -v build/last/pkg/*.deb "$ARTIFACTS_DIR/";
+                fi
         - stage: Upload Package
           # We need to include the exclusion of D2 tags because this "if"
           # replaces the global one
           if: tag IS present
           script:
-              - beaver make F=cdgc.release pkg
               - beaver bintray upload -d sociomantic-tsunami/dlang/tangort
-                build/last/pkg/*.deb
+                "$ARTIFACTS_DIR"/*.deb
