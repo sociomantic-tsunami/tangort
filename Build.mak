@@ -54,9 +54,7 @@ version := $(shell git describe --dirty | cut -c2- | \
 		sed 's/\(-[0-9a-f]\{7\}\)-dirty$$/-dirty\1/')
 
 # Sources
-src := $(call find_files,.[dcS],,$C/src/rt) \
-	$(call find_files,.[dcS],,$C/src/gc/$(D_GC)) \
-	$(call find_files,.[dcS],,$C/src/core)
+src := $(call find_files,.[dcS],,$C/src)
 
 # Objects to be compiled
 obj := $(filter-out %.d,$(src))
@@ -77,8 +75,7 @@ $L/libtangort-dmd-$(D_GC)$(libsuffix).a: $(obj)
 # by the runtime, or because some modules use reserved words
 TEST_FILTER_OUT := \
 	$T/src/rt/invariant.d \
-	$T/src/rt/object_.d \
-	$T/src/rt/include/object.di \
+	$T/src/object.d \
 	$T/src/rt/%/intrinsic.d
 
 
@@ -113,7 +110,8 @@ $O/%.o: %.S
 # Packages dependencies
 $O/pkg-libtangort-dmd-dev.stamp: \
 	$C/dmd1.conf \
-	$C/src/rt/include/object.di $C/src/rt/include/std/intrinsic.d \
+	$C/src/rt/include/std/intrinsic.d \
+	$C/src/object.d \
 	$(call find_files,.d,,$C/src/core) $(call find_files,.di,,$C/src/core) \
 	cdgc-debug cdgc-release
 

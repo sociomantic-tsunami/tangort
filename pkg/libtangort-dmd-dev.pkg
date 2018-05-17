@@ -15,7 +15,7 @@ OPTS.update(
 
 ARGS.extend([
     "pkg/dmd1.conf=/etc/dmd1.conf",
-    "src/rt/include/object.di=/usr/include/d1/object.di",
+    "src/object.d=/usr/include/d1/object.d",
     "src/rt/include/std/intrinsic.d=/usr/include/d1/std/intrinsic.d",
     "src/core=/usr/include/d1/",
     "build/cdgc.release/lib/libtangort-dmd-cdgc.a=/usr/lib/d1/libtangort-dmd-cdgc.a",
