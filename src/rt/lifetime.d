@@ -254,7 +254,7 @@ extern(C) array_t _d_newarrayiT(TypeInfo ti, size_t length)
         result = array_t.init;
     else
     {
-        auto initializer = ti.next.init();
+        auto initializer = ti.next.initializer();
         auto isize = initializer.length;
         auto q = initializer.ptr;
         version (D_InlineAsm_X86)
@@ -788,7 +788,7 @@ body
 {
     byte* newdata;
     size_t sizeelem = ti.next.tsize();
-    void[] initializer = ti.next.init();
+    void[] initializer = ti.next.initializer();
     size_t initsize = initializer.length;
 
     assert(sizeelem);
