@@ -297,6 +297,8 @@ class ClassInfo : Object
     byte[]      init;           /** class static initializer
                                  * (init.length gives size in bytes of class)
                                  */
+    byte[] initializer ( ) { return init; }
+
     char[]      name;           /// class name
     void*[]     vtbl;           /// virtual function pointer table
     Interface[] interfaces;     /// interfaces this class implements
@@ -440,6 +442,8 @@ class TypeInfo
     /// Return default initializer, null if default initialize to 0
     void[] init() { return null; }
 
+    void[] initializer() { return init(); }
+
     /// Get flags for type: 1 means GC should scan for pointers
     uint flags() { return 0; }
 
@@ -508,7 +512,9 @@ class TypeInfo_Typedef : TypeInfo
     override TypeInfo next() { return base; }
     override uint flags() { return base.flags(); }
     override PointerMap pointermap() { return base.pointermap(); }
+
     override void[] init() { return m_init.length ? m_init : base.init(); }
+    override void[] initializer() { return init(); }
 
     size_t talign() { return base.talign(); }
 
@@ -760,6 +766,8 @@ class TypeInfo_StaticArray : TypeInfo
     }
 
     override void[] init() { return value.init(); }
+    override void[] initializer() { return init(); }
+
     override TypeInfo next() { return value; }
     override uint flags() { return value.flags(); }
 
@@ -1176,6 +1184,7 @@ class TypeInfo_Struct : TypeInfo
     }
 
     override void[] init() { return m_init; }
+    override void[] initializer() { return init(); }
 
     override uint flags() { return m_flags; }
 
