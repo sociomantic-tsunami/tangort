@@ -129,6 +129,7 @@ class TypeInfo
     /// "next" TypeInfo (for an array its elements, for a pointer what it is pointed to,...)
     TypeInfo next();
     void[]   init();
+    void[]   initializer();
     /// flags, 1: has possible pointers into GC memory
     uint     flags();
     PointerMap pointermap();
