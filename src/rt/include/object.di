@@ -77,6 +77,7 @@ struct PointerMapBuilder
 class ClassInfo : Object
 {
     byte[]      init;   // class static initializer
+    byte[] initializer ( );
     char[]      name;   /// class name
     void*[]     vtbl;   // virtual function pointer table
     Interface[] interfaces; /// implemented interfaces
