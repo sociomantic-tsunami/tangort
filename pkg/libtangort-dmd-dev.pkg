@@ -4,7 +4,7 @@ OPTS.update(
     category = 'libdevel',
     url = 'https://github.com/sociomantic-tsunami/tangort',
     maintainer = 'Leandro Lucarella <leandro.lucarella@sociomantic.com>',
-    vendor = 'Sociomantic Labs GmbH',
+    vendor = 'dunnhumby Germany GmbH',
     license = 'BSD-2-clause',
     depends = 'dmd1 >= 1.080.0', # TODO: get dmd1 dependency from metadata file
     deb_recommends = 'dmd1-rt',
