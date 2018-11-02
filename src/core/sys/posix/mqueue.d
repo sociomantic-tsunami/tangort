@@ -14,7 +14,7 @@
  * mq_setattr(3)       set message queue attributes
  * mq_notify(3)        register asynchronous notify
  *
- * Copyright: Copyright (c) 2016 Sociomantic Labs GmbH. All rights reserved.
+ * Copyright: Copyright (c) 2016 dunnhumby Germany GmbH. All rights reserved.
  * License:   $(WEB www.boost.org/LICENSE_1_0.txt, Boost License 1.0).
  * Authors:   Andreas Bok Andersen, Mathias Lang
  * Standards: POSIX.1-2001.

@@ -1,7 +1,7 @@
 /**
  * D header file for POSIX.
  *
- * Copyright: Copyright (c) 2013 Lars Tandle Kyllingstad, Copyright (c) 2016 Sociomantic Labs GmbH
+ * Copyright: Copyright (c) 2013 Lars Tandle Kyllingstad, Copyright (c) 2016 dunnhumby Germany GmbH
  * License:   <a href="http://www.boost.org/LICENSE_1_0.txt">Boost License 1.0</a>.
  * Authors:   Lars Tandle Kyllingstad, Hatem Oraby
  * Standards: The Open Group Base Specifications Issue 7, IEEE Std 1003.1-2008

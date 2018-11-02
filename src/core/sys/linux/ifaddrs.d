@@ -8,7 +8,7 @@
     getifaddrs(3)   get interface addresses
     freeifaddrs(3)  deallocates the structure returned from getifaddrs
 
-    Copyright:  Copyright (c) 2016 Sociomantic Labs. All rights reserved.
+    Copyright:  Copyright (c) 2016 dunnhumby Germany GmbH. All rights reserved.
     License:    $(WEB www.boost.org/LICENSE_1_0.txt, Boost License 1.0).
     Authors:    Nemanja Boric
 
