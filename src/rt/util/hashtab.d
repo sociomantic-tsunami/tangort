@@ -8,6 +8,7 @@
 module rt.util.hashtab;
 
 import rt.util.array;
+import core.stdc.stdio;
 static import common = rt.util.common;
 
 struct HashTab(Key, Value)
@@ -54,8 +55,7 @@ struct HashTab(Key, Value)
         ensureNotInOpApply();
 
         auto hash = hashOf(key) & mask;
-        auto head = _buckets[hash];
-        auto pp = &head;
+        auto pp = _buckets[hash];
         while (*pp)
         {
             auto p = *pp;
@@ -91,10 +91,11 @@ struct HashTab(Key, Value)
         if (_buckets.length)
         {
             auto hash = hashOf(key) & mask;
-            for (auto p = _buckets[hash]; p !is null; p = p._next)
+            for (auto p = *_buckets[hash]; p !is null; p = p._next)
             {
                 if (p._key == key)
                     return &p._value;
+                assert(p !is p._next);
             }
         }
         return null;
@@ -130,10 +131,11 @@ private:
             _buckets.length = 4;
 
         auto hash = hashOf(key) & mask;
-        auto p = cast(Node*)common.xmalloc(Node.sizeof);
+        auto p = cast(Node*) common.xmalloc(Node.sizeof);
         common.initialize(*p);
         p._key = key;
-        p._next = _buckets[hash];
+        assert(*_buckets[hash] !is p);
+        p._next = *_buckets[hash];
         _buckets[hash] = p;
         if (++_length >= 2 * _buckets.length)
             grow();
@@ -162,8 +164,7 @@ private:
         _buckets.length = 2 * ocnt;
         for (size_t i = 0; i < ocnt; ++i)
         {
-            auto head = _buckets[i];
-            auto pp = &head;
+            auto pp = _buckets[i];
             while (*pp)
             {
                 auto p = *pp;
@@ -172,7 +173,8 @@ private:
                 if (nidx != i)
                 {
                     *pp = p._next;
-                    p._next = _buckets[nidx];
+                    assert(*_buckets[nidx] !is p);
+                    p._next = *_buckets[nidx];
                     _buckets[nidx] = p;
                 }
                 else
@@ -196,11 +198,10 @@ private:
 
         for (size_t i = ncnt; i < ocnt; ++i)
         {
-            if (auto tail = _buckets[i])
+            if (auto tail = *_buckets[i])
             {
                 auto nidx = i & nmask;
-                auto head = _buckets[nidx];
-                auto pp = &head;
+                auto pp = _buckets[nidx];
                 while (*pp)
                     pp = &(*pp)._next;
                 *pp = tail;
@@ -242,4 +243,11 @@ unittest
 
     tab.remove("foo");
     assert(tab.empty);
+
+    auto value = "foo" in tab;
+    assert(value is null);
+    tab["foo"] = 1;
+    tab["foo"] = 2;
+    value = "foo" in tab;
+    assert(*value == 2);
 }

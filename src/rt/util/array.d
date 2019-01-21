@@ -14,6 +14,8 @@ struct Array(T)
 {
     void reset()
     {
+        foreach (ref elem; this.opSlice[])
+            elem = elem.init;
         length = 0;
     }
 
@@ -52,11 +54,11 @@ struct Array(T)
         return &_ptr[_length - 1];
     }
 
-    T opIndex(size_t idx)
+    T* opIndex(size_t idx)
     in { assert(idx < length); }
     body
     {
-        return _ptr[idx];
+        return &_ptr[idx];
     }
 
     void opIndexAssign(T value, size_t idx)
