@@ -20,12 +20,11 @@ import core.stdc.stdlib;
 import core.stdc.string;
 
 import core.exception : onOutOfMemoryError;
-import rt.util.hashtab;
 
 struct Entry { size_t count, size; }
 
 char[] buffer;
-HashTab!(char[], Entry) newCounts;
+Entry[char[]] newCounts;
 char[] logfilename = "profilegc.log";
 
 /****
@@ -37,27 +36,24 @@ char[] logfilename = "profilegc.log";
 
 extern (C) void profilegc_setlogfilename(char[] name)
 {
-    logfilename = name ~ "\0";
+    logfilename = name;
 }
 
-public void accumulate(char[] file, uint line, char[] funcname, char[] type,
-    size_t sz)
-{
-    if (sz == 0)
-        return;
 
+
+public void accumulate(char[] file, uint line, char[] funcname, char[] type, size_t sz)
+{
     char[3 * line.sizeof + 1] buf;
     auto buflen = snprintf(buf.ptr, buf.length, "%u".ptr, line);
 
-    auto ln = type.length + 1 + funcname.length + 1 + file.length + 1 + buflen;
-    if (ln > buffer.length)
+    auto lngth = type.length + 1 + funcname.length + 1 + file.length + 1 + buflen;
+    if (lngth > buffer.length)
     {
         // Enlarge buffer[] so it is big enough
-        assert(buffer.length > 0 || buffer.ptr is null);
-        auto p = cast(char*)realloc(buffer.ptr, ln + 1);
+        auto p = cast(char*)realloc(buffer.ptr, lngth);
         if (!p)
             onOutOfMemoryError();
-        buffer = p[0 .. ln + 1];
+        buffer = p[0 .. lngth];
     }
 
     // "type funcname file:line"
@@ -71,19 +67,14 @@ public void accumulate(char[] file, uint line, char[] funcname, char[] type,
     buffer[type.length + 1 + funcname.length + 1 + file.length] = ':';
     buffer[type.length + 1 + funcname.length + 1 + file.length + 1 ..
            type.length + 1 + funcname.length + 1 + file.length + 1 + buflen] = buf[0 .. buflen];
-    buffer[ln] = 0;
 
-    if (auto pcount = buffer[0 .. ln] in newCounts)
+    if (auto pcount = cast(char[])buffer[0 .. lngth] in newCounts)
     { // existing entry
         pcount.count++;
         pcount.size += sz;
     }
     else
-    {
-        auto key = (cast(char*) malloc(char.sizeof * ln))[0 .. ln];
-        key[] = buffer[0..ln];
-        newCounts[key] = Entry(1, sz); // new entry
-    }
+        newCounts[buffer[0..lngth].dup] = Entry(1, sz); // new entry
 }
 
 // Write report to stderr
@@ -95,27 +86,18 @@ static ~this()
         Entry entry;
 
         // qsort() comparator to sort by count field
-        extern (C) static int qsort_cmp(void *r1, void *r2)
+        extern (C) static int qsort_cmp(in void *r1, in void *r2)
         {
             auto result1 = cast(Result*)r1;
             auto result2 = cast(Result*)r2;
-
             ptrdiff_t cmp = result2.entry.size - result1.entry.size;
             if (cmp) return cmp < 0 ? -1 : 1;
             cmp = result2.entry.count - result1.entry.count;
-            if (cmp) return cmp < 0 ? -1 : 1;
-
-            if (result2.name == result1.name)
-                return 0;
-            // ascending order for names reads better
-            return result2.name > result1.name ? -1 : 1;
+            return cmp < 0 ? -1 : (cmp > 0 ? 1 : 0);
         }
     }
 
-    size_t size = newCounts.length;
-    Result[] counts = (cast(Result*) malloc(size * Result.sizeof))[0 .. size];
-    scope(exit)
-        free(counts.ptr);
+    Result[] counts = new Result[newCounts.length];
 
     size_t i;
     foreach (name, entry; newCounts)
@@ -128,10 +110,13 @@ static ~this()
     if (counts.length)
     {
         qsort(counts.ptr, counts.length, Result.sizeof, &Result.qsort_cmp);
-        FILE* fp = logfilename.length == 0 ? stdout : fopen(logfilename.ptr, "w".ptr);
+
+        FILE* fp = logfilename.length == 0 ? stdout : fopen((logfilename ~
+            '\0').ptr, "w".ptr);
         if (fp)
         {
-            fprintf(fp, "bytes allocated, allocations, type, function, file:line\n".ptr);
+            fprintf(fp,
+                "bytes allocated, allocations, type, function, file:line\n".ptr);
             foreach (ref c; counts)
             {
                 fprintf(fp, "%15llu\t%15llu\t%8.*s\n".ptr,
@@ -142,6 +127,7 @@ static ~this()
                 fclose(fp);
         }
         else
-            fprintf(stderr, "cannot write profilegc log file '%.*s'".ptr, logfilename.length, logfilename.ptr);
+            fprintf(stderr, "cannot write profilegc log file '%.*s'".ptr,
+                logfilename.length, logfilename.ptr);
     }
 }
