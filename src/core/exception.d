@@ -96,7 +96,7 @@ class FinalizeError : Error
         {
             char[16] line_buf;
             cast(void)snprintf(line_buf.ptr, line_buf.length,
-                    "%ld", super.next.line);
+                    "%ld".ptr, super.next.line);
 
             chained_exception =
                 super.next.toString ~ "@" ~ super.next.file ~ ":" ~ line_buf;
